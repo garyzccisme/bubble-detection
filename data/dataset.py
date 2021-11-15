@@ -1,5 +1,9 @@
+from typing import Dict, List
+
 import numpy as np
 import pandas as pd
+from sklearn.metrics import mean_squared_error
+from statsmodels.tsa.arima.model import ARIMA
 import yahoofinancials
 
 
@@ -8,6 +12,7 @@ class StockDataset:
         self.ticker = ticker
         self.data = yahoofinancials.YahooFinancials(ticker)
         self.hist = None
+        self.arima_dict = {}
 
     def get_hist(self, start_date, end_date, time_interval='daily'):
         df = pd.DataFrame(
@@ -16,9 +21,10 @@ class StockDataset:
         df = df[['formatted_date', 'high', 'low', 'open', 'adjclose', 'volume']]
         df.rename(columns={'formatted_date': 'date', 'adjclose': 'close'}, inplace=True)
         df.set_index('date', inplace=True)
+        df['diff'] = df['close'].diff().fillna(0)
         df['return'] = df['close'].pct_change().fillna(0)
         self.hist = df
-        return df
+        return df.copy(deep=True)
 
     def get_change(self, is_up: bool):
         """
@@ -71,13 +77,13 @@ class StockDataset:
             change_df = change_df[abs_return >= abs_return.rolling(window=past_period, min_periods=1).quantile(1 - pct)]
         return change_df.reset_index(drop=True)
 
-    def get_change_forecast_label(self, forecast_days: int, **kwargs):
+    def get_change_forecast_label(self, forecast_len: int, **kwargs):
         """
         Given massive change start date, mark previous `forecast_days` trade days as 1.
         Thus a date label is 1, indicating there will be a massive change(drawup or drawdown) in `forecast_days`.
 
         Args:
-            forecast_days: The number of trade days to forecast massive ahead.
+            forecast_len: The number of trade days to forecast massive ahead.
             **kwargs: parameters of self.get_massive_change()
 
         Returns: Binary label series.
@@ -87,10 +93,37 @@ class StockDataset:
         labels = pd.Series(0, index=self.hist.index)
         for date in massive_change['start_date']:
             iloc = labels.index.get_loc(date)
-            if iloc < forecast_days:
+            if iloc < forecast_len:
                 labels[:iloc] = 1
             else:
-                labels[iloc - forecast_days:iloc] = 1
+                labels[iloc - forecast_len:iloc] = 1
         return labels
 
+    def lookback_agg(self, lookback_len, agg_func: Dict = None, new_col_name: List = None):
+        """
+        Apply aggregation functions on lookback period.
 
+        Args:
+            lookback_len: The number of trade days to lookback.
+            agg_func: Aggregation functions, in structure {'column name': ['function to apply']}.
+            new_col_name: List of column names of aggregated functions.
+
+        Returns: Lookback aggregated dataframe.
+
+        """
+        if agg_func is None:
+            agg_func = {
+                'high': max,
+                'low': min,
+                'close': [np.mean, np.std],
+                'diff': [np.mean, np.std],
+                'return': [np.mean, np.std]
+            }
+            new_col_name = [
+                f'past_{lookback_len}_max', f'past_{lookback_len}_min', f'past_{lookback_len}_avg',
+                f'past_{lookback_len}_std', f'past_{lookback_len}_diff_avg', f'past_{lookback_len}_diff_std',
+                f'past_{lookback_len}_return_avg', f'past_{lookback_len}_return_std'
+            ]
+        agg_df = self.hist.rolling(lookback_len).agg(agg_func)
+        agg_df.columns = new_col_name
+        return agg_df
