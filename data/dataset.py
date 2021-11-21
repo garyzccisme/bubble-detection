@@ -117,12 +117,15 @@ class StockDataset:
                 'low': min,
                 'close': [np.mean, np.std],
                 'diff': [np.mean, np.std],
-                'return': [np.mean, np.std]
+                'return': [np.mean, np.std],
+                'volume': [np.mean, np.std],
             }
             new_col_name = [
-                f'past_{lookback_len}_max', f'past_{lookback_len}_min', f'past_{lookback_len}_avg',
-                f'past_{lookback_len}_std', f'past_{lookback_len}_diff_avg', f'past_{lookback_len}_diff_std',
-                f'past_{lookback_len}_return_avg', f'past_{lookback_len}_return_std'
+                f'past_{lookback_len}_max', f'past_{lookback_len}_min',
+                f'past_{lookback_len}_avg', f'past_{lookback_len}_std',
+                f'past_{lookback_len}_diff_avg', f'past_{lookback_len}_diff_std',
+                f'past_{lookback_len}_return_avg', f'past_{lookback_len}_return_std',
+                f'past_{lookback_len}_volume_avg', f'past_{lookback_len}_volume_std',
             ]
         agg_df = self.hist.rolling(lookback_len).agg(agg_func)
         agg_df.columns = new_col_name

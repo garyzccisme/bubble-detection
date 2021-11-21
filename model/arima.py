@@ -50,3 +50,18 @@ def evaluate(train, valid, order):
     # calculate out of sample error
     error = mean_squared_error(valid, predictions)
     return error
+
+
+# dataset = StockDataset('^GSPC')
+# df = dataset.get_hist(start_date='1950-01-01', end_date='2021-10-23', time_interval='daily')
+# grid_search(df.loc['2000-01-01':'2018-01-01', 'close'], train_ratio=0.9)
+
+# Train Valid Split at 2016-03-16
+# ARIMA((1, 1, 2)), MSE = 149.11323984571737
+# ARIMA((1, 1, 3)), MSE = 149.26388769512232
+# ARIMA((1, 1, 4)), MSE = 149.64771496909216
+# ARIMA((1, 1, 5)), MSE = 150.1317254300242
+# ARIMA((2, 1, 2)), MSE = 149.07104137041637
+# ARIMA((2, 1, 3)), MSE = 149.3969111543549
+# ARIMA((2, 1, 4)), MSE = 150.20506186836022
+# ARIMA((2, 1, 5)), MSE = 149.7697562810388

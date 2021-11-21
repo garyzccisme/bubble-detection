@@ -27,7 +27,7 @@ class HybridScaler(TransformerMixin, BaseEstimator):
         self.volume_scaler = self.get_scaler(target['volume'])
         self.columns = None
 
-    def fit(self, df: pd.DataFrame):
+    def fit(self, df: pd.DataFrame, y=None):
         self.classify_cols(df.columns)
         self.price_scaler.fit(df[self.columns[0]])
         self.return_scaler.fit(df[self.columns[1]])
