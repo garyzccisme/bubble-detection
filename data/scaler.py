@@ -36,10 +36,10 @@ class HybridScaler(TransformerMixin, BaseEstimator):
         return self
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        price_df = pd.DataFrame(self.price_scaler.transform(df[self.columns[0]]), columns=self.columns[0])
-        return_df = pd.DataFrame(self.return_scaler.transform(df[self.columns[1]]), columns=self.columns[1])
-        diff_df = pd.DataFrame(self.diff_scaler.transform(df[self.columns[2]]), columns=self.columns[2])
-        volume_df = pd.DataFrame(self.volume_scaler.transform(df[self.columns[3]]), columns=self.columns[3])
+        price_df = pd.DataFrame(self.price_scaler.transform(df[self.columns[0]]), columns=self.columns[0], index=df.index)
+        return_df = pd.DataFrame(self.return_scaler.transform(df[self.columns[1]]), columns=self.columns[1], index=df.index)
+        diff_df = pd.DataFrame(self.diff_scaler.transform(df[self.columns[2]]), columns=self.columns[2], index=df.index)
+        volume_df = pd.DataFrame(self.volume_scaler.transform(df[self.columns[3]]), columns=self.columns[3], index=df.index)
 
         scaled_df = pd.concat([price_df, return_df, diff_df, volume_df], axis=1)[df.columns]
         return scaled_df
