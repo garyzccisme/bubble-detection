@@ -61,7 +61,8 @@ class Macro:
 
         # Merge variables
         var = [gdp, cpi, ffr, treasury_5, treasury_10, treasury_30, unemployment, ipi, oil, gold]
-        macro = pd.concat(var, axis=1).interpolate(method='time')
+        # macro = pd.concat(var, axis=1).interpolate(method='time')
+        macro = pd.concat(var, axis=1).fillna(method='ffill')
         macro.index = macro.index.astype(str)
         macro.index.name = 'date'
         return macro
